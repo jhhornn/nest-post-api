@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 
@@ -19,4 +19,9 @@ export class AuthController {
   ): Promise<{ accessToken: string }> {
     return this.authService.signIn(authCredentialsDto);
   }
+
+  // @Post('/forgot-password')
+  // forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<any> {
+  //   return this.authService.forgotPassword(forgotPasswordDto);
+  // }
 }

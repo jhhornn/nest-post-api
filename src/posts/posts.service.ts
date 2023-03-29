@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/auth/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsFilterDto } from './dto/get-posts-filter.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 import { PostEntity } from './post.entity';
 import { PostsRepository } from './posts.repository';
-import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class PostsService {
@@ -15,8 +16,8 @@ export class PostsService {
   ) {}
 
   // create post service
-  createPost(createPostDto: CreatePostDto): Promise<PostEntity> {
-    return this.postsRepository.createPost(createPostDto);
+  createPost(createPostDto: CreatePostDto, user: User): Promise<PostEntity> {
+    return this.postsRepository.createPost(createPostDto, user);
   }
 
   // get post service
@@ -36,9 +37,13 @@ export class PostsService {
   }
 
   // update post by id
-  async updatePost(id: string, updatePost: UpdatePostDto): Promise<PostEntity> {
+  async updatePost(
+    id: string,
+    updatePost: UpdatePostDto,
+    user: User,
+  ): Promise<PostEntity> {
     const foundPost = await this.postsRepository.findOne({
-      where: { id },
+      where: { id, user },
     });
 
     if (!foundPost) {
@@ -56,8 +61,8 @@ export class PostsService {
   }
 
   // delete a post by id
-  async deletePost(id: string): Promise<void> {
-    const toDelete = await this.postsRepository.delete({ id });
+  async deletePost(id: string, user: User): Promise<void> {
+    const toDelete = await this.postsRepository.delete({ id, user });
     if (toDelete.affected === 0) {
       throw new NotFoundException(`Post with ID '${id}' not found`);
     }

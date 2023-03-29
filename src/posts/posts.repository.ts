@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { User } from 'src/auth/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreatePostDto } from './dto/create-post.dto';
-import { PostEntity } from './post.entity';
 import { GetPostsFilterDto } from './dto/get-posts-filter.dto';
+import { PostEntity } from './post.entity';
 
 @Injectable()
 export class PostsRepository extends Repository<PostEntity> {
@@ -10,13 +11,17 @@ export class PostsRepository extends Repository<PostEntity> {
     super(PostEntity, dataSource.createEntityManager());
   }
 
-  async createPost(createPostDto: CreatePostDto): Promise<PostEntity> {
+  async createPost(
+    createPostDto: CreatePostDto,
+    user: User,
+  ): Promise<PostEntity> {
     const { title, body, description } = createPostDto;
 
     const post = this.create({
       title,
       description,
       body,
+      user,
     });
 
     await this.save(post);

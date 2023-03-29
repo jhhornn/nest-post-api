@@ -5,6 +5,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsFilterDto } from './dto/get-posts-filter.dto';
 import { PostEntity } from './post.entity';
 import { PostsRepository } from './posts.repository';
+import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class PostsService {
@@ -30,6 +31,26 @@ export class PostsService {
     if (!foundPost) {
       throw new NotFoundException(`Post with ID '${id}' not found`);
     }
+
+    return foundPost;
+  }
+
+  // update post by id
+  async updatePost(id: string, updatePost: UpdatePostDto): Promise<PostEntity> {
+    const foundPost = await this.postsRepository.findOne({
+      where: { id },
+    });
+
+    if (!foundPost) {
+      throw new NotFoundException(`Post with ID '${id}' not found`);
+    }
+
+    const { title, description, body } = updatePost;
+    foundPost.title = title || foundPost.title;
+    foundPost.description = description || foundPost.description;
+    foundPost.body = body || foundPost.body;
+
+    await this.postsRepository.save(foundPost);
 
     return foundPost;
   }

@@ -21,7 +21,7 @@ import { UsersRepository } from './users.repository';
         return {
           secret: configService.get('JWT_SECRET'),
           signOptions: {
-            expiresIn: configService.get('JWT_EXPIRES'),
+            expiresIn: parseInt(configService.get('JWT_EXPIRES')),
           },
         };
       },
@@ -29,5 +29,6 @@ import { UsersRepository } from './users.repository';
   ],
   providers: [AuthService, UsersRepository, JwtStrategy],
   controllers: [AuthController],
+  exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}

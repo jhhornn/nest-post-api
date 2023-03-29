@@ -7,7 +7,9 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsFilterDto } from './dto/get-posts-filter.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -15,6 +17,8 @@ import { PostEntity } from './post.entity';
 import { PostsService } from './posts.service';
 
 @Controller('api/v1/posts')
+// protect all post routes
+@UseGuards(AuthGuard())
 export class PostsController {
   // make postService available for use in controller class
   constructor(private postsService: PostsService) {}

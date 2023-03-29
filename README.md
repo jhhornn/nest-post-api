@@ -91,11 +91,11 @@ root route - `api/v1/`
 4. If the client has a valid token, API server proceeds with the request
 5. If the client does not have a valid token, API server sends a 401 Unauthorized response
 6. If authentication is not required, API server proceeds with the request
-7. API server processes the request based on the HTTP method (GET, POST, DELETE, or PATCH)
+7. API server processes the request based on the HTTP method (GET, POST, DELETE, or PUT)
 8. If the request is GET, API server retrieves the resource and sends it back to the client
 9. If the request is POST, API server creates a new resource and sends a 201 Created response with the URI of the new resource
 10. If the request is DELETE, API server deletes the resource and sends a 204 No Content response
-11. If the request is PATCH, API server updates the resource and sends a 200 OK response with the updated resource
+11. If the request is PUT, API server updates the resource and sends a 200 OK response with the updated resource
 
 Note: The client obtains a valid token through an authentication process and sends the token with each request in the Authorization header. The API server validates the token using a token validation service or a similar mechanism.
 

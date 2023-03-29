@@ -41,8 +41,6 @@ $ npm run start
 # watch mode
 $ npm run start:dev
 
-# production mode
-$ npm run start:prod
 ```
 
 ## Test
@@ -51,12 +49,55 @@ $ npm run start:prod
 # unit tests
 $ npm run test
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
+
+## Env
+
+change `.env.example.dev` to `.env.stage.dev` and update the values in it.
+
+
+## Doc
+```
+http://localhost:<PORT>/api-doc
+```
+## Routes
+
+<pre>
+root route - `api/v1/`
+</pre>
+### API Endpoints - Posts
+| Endpoint | Method | Description              |
+|----------|--------|--------------------------|
+|posts/    |GET     |Get posts(include filters)|
+|posts/:id |GET     |Get a post                |
+|posts/    |POST    |Create a posts            |
+|posts/    |DELETE  |Delete a post             |
+|posts/:id |PATCH   |Update a post             |
+
+
+
+### API Endpoints - Auth
+| Endpoint    | Method | Description |
+|-------------|--------|-------------|
+|auth/signup/ |POST    |Sign up      |
+|auth/signin/ |POST    |Sign in      |
+
+
+
+## Description of Flow
+1. Client sends a request to the API server
+2. API server checks if the request requires authentication
+3. If authentication is required, API server checks if the client has a valid token
+4. If the client has a valid token, API server proceeds with the request
+5. If the client does not have a valid token, API server sends a 401 Unauthorized response
+6. If authentication is not required, API server proceeds with the request
+7. API server processes the request based on the HTTP method (GET, POST, DELETE, or PATCH)
+8. If the request is GET, API server retrieves the resource and sends it back to the client
+9. If the request is POST, API server creates a new resource and sends a 201 Created response with the URI of the new resource
+10. If the request is DELETE, API server deletes the resource and sends a 204 No Content response
+11. If the request is PATCH, API server updates the resource and sends a 200 OK response with the updated resource
+
+Note: The client obtains a valid token through an authentication process and sends the token with each request in the Authorization header. The API server validates the token using a token validation service or a similar mechanism.
 
 ## Support
 

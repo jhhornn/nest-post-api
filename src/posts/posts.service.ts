@@ -21,13 +21,15 @@ export class PostsService {
   }
 
   // get post service
-  getPosts(filterDto: GetPostsFilterDto): Promise<PostEntity[]> {
-    return this.postsRepository.getPosts(filterDto);
+  getPosts(filterDto: GetPostsFilterDto, user: User): Promise<PostEntity[]> {
+    return this.postsRepository.getPosts(filterDto, user);
   }
 
   // get post by id service
-  async getPostById(id: string): Promise<PostEntity> {
-    const foundPost = await this.postsRepository.findOne({ where: { id: id } });
+  async getPostById(id: string, user: User): Promise<PostEntity> {
+    const foundPost = await this.postsRepository.findOne({
+      where: { id, user },
+    });
 
     if (!foundPost) {
       throw new NotFoundException(`Post with ID '${id}' not found`);

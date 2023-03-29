@@ -28,10 +28,14 @@ export class PostsRepository extends Repository<PostEntity> {
     return post;
   }
 
-  async getPosts(filterDto: GetPostsFilterDto): Promise<PostEntity[]> {
+  async getPosts(
+    filterDto: GetPostsFilterDto,
+    user: User,
+  ): Promise<PostEntity[]> {
     const { search } = filterDto;
     // Refer to 'post' inside query
     const query = this.createQueryBuilder('post');
+    query.where({ user });
 
     // Search by post title or description given in query
     if (search) {

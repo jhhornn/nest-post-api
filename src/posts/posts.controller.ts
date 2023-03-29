@@ -36,14 +36,20 @@ export class PostsController {
 
   // Get posts
   @Get()
-  getPosts(@Query() filterDto: GetPostsFilterDto): Promise<PostEntity[]> {
-    return this.postsService.getPosts(filterDto);
+  getPosts(
+    @Query() filterDto: GetPostsFilterDto,
+    @GetUser() user: User,
+  ): Promise<PostEntity[]> {
+    return this.postsService.getPosts(filterDto, user);
   }
 
   // Get posts by id
   @Get('/:id')
-  getPostById(@Param('id') id: string): Promise<PostEntity> {
-    return this.postsService.getPostById(id);
+  getPostById(
+    @Param('id') id: string,
+    @GetUser() user: User,
+  ): Promise<PostEntity> {
+    return this.postsService.getPostById(id, user);
   }
 
   // Update post

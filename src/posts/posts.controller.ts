@@ -58,7 +58,7 @@ export class PostsController {
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
     @GetUser() user: User,
-  ): Promise<PostEntity> {
+  ): Promise<void> {
     return this.postsService.updatePost(id, updatePostDto, user);
   }
 

@@ -1,18 +1,19 @@
+import { Column, Entity, ObjectID, ObjectIdColumn, OneToMany } from 'typeorm';
 import { PostEntity } from '../posts/post.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @ObjectIdColumn()
+  id!: ObjectID;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
-  // Eager true fetches the posts with the user (populate)
-  @OneToMany((_type) => PostEntity, (post) => post.user, { eager: true })
-  posts: PostEntity[];
+  // @Column((type) => PostEntity)
+  // posts!: ObjectID[];
+  @ObjectIdColumn({ name: 'post', array: true })
+  posts!: ObjectID[] | PostEntity[];
 }

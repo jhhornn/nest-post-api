@@ -1,10 +1,10 @@
 import { User } from '../auth/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, ObjectID, ObjectIdColumn } from 'typeorm';
 
-@Entity()
+@Entity('posts')
 export class PostEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @ObjectIdColumn()
+  id: ObjectID;
 
   @Column()
   title: string;
@@ -15,6 +15,8 @@ export class PostEntity {
   @Column()
   body: string;
 
-  @ManyToOne((_type) => User, (user) => user.posts, { eager: false })
-  user: User;
+  // @ManyToOne(() => User, (user) => user.posts)
+  // user: User;
+  @ObjectIdColumn({ name: 'user' })
+  user!: ObjectID | PostEntity;
 }

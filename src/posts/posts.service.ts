@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { NotFoundException } from '@nestjs/common/exceptions';
+import {
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ObjectID } from 'mongodb';
 import { User } from '../auth/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsFilterDto } from './dto/get-posts-filter.dto';
@@ -12,7 +16,7 @@ import { PostsRepository } from './posts.repository';
 export class PostsService {
   constructor(
     @InjectRepository(PostsRepository)
-    private postsRepository: PostsRepository,
+    private readonly postsRepository: PostsRepository,
   ) {}
 
   // create post service
@@ -22,20 +26,41 @@ export class PostsService {
 
   // get post service
   getPosts(filterDto: GetPostsFilterDto, user: User): Promise<PostEntity[]> {
-    return this.postsRepository.getPosts(filterDto, user);
+    // return this.postsRepository.getPosts(filterDto, user);
+    const { search } = filterDto;
+    if (search) {
+      return this.postsRepository.find({
+        where: { user: user.id, title: { $regex: search, $option: 'i' } },
+        relations: { user: true },
+        select: ['title', 'description', 'body'],
+      });
+    } else {
+      return this.postsRepository.find({
+        where: { user: user.id },
+        relations: { user: true },
+        select: ['title', 'description', 'body'],
+      });
+    }
   }
 
   // get post by id service
   async getPostById(id: string, user: User): Promise<PostEntity> {
-    const foundPost = await this.postsRepository.findOne({
-      where: { id, user },
+    const isValidId = ObjectID.isValid(new ObjectID(id));
+    const post = await this.postsRepository.findOne({
+      where: { _id: new ObjectID(id) },
     });
 
-    if (!foundPost) {
+    if (!isValidId && !post) {
       throw new NotFoundException(`Post with ID '${id}' not found`);
     }
 
-    return foundPost;
+    if (JSON.stringify(user.id) !== JSON.stringify(post.user)) {
+      throw new UnauthorizedException(
+        `You are not authorized to view this post`,
+      );
+    }
+
+    return post;
   }
 
   // update post by id
@@ -43,30 +68,41 @@ export class PostsService {
     id: string,
     updatePost: UpdatePostDto,
     user: User,
-  ): Promise<PostEntity> {
+  ): Promise<void> {
+    const isValidId = ObjectID.isValid(new ObjectID(id));
     const foundPost = await this.postsRepository.findOne({
-      where: { id, user },
+      where: { _id: new ObjectID(id) },
     });
 
-    if (!foundPost) {
+    if (!isValidId && !foundPost) {
       throw new NotFoundException(`Post with ID '${id}' not found`);
     }
 
-    const { title, description, body } = updatePost;
-    foundPost.title = title || foundPost.title;
-    foundPost.description = description || foundPost.description;
-    foundPost.body = body || foundPost.body;
+    if (JSON.stringify(user.id) !== JSON.stringify(foundPost.user)) {
+      throw new UnauthorizedException(
+        `You are not authorized to update this post`,
+      );
+    }
 
-    await this.postsRepository.save(foundPost);
-
-    return foundPost;
+    await this.postsRepository.update(id, updatePost);
   }
 
   // delete a post by id
   async deletePost(id: string, user: User): Promise<void> {
-    const toDelete = await this.postsRepository.delete({ id, user });
-    if (toDelete.affected === 0) {
+    const isValidId = ObjectID.isValid(new ObjectID(id));
+    const foundPost = await this.postsRepository.findOne({
+      where: { _id: new ObjectID(id) },
+    });
+
+    if (!isValidId && !foundPost) {
       throw new NotFoundException(`Post with ID '${id}' not found`);
     }
+
+    if (JSON.stringify(user.id) !== JSON.stringify(foundPost.user)) {
+      throw new UnauthorizedException(
+        `You are not authorized to update this post`,
+      );
+    }
+    await this.postsRepository.delete(id);
   }
 }

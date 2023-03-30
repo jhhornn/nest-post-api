@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PostsRepository } from './posts.repository';
 import { PostsService } from './posts.service';
+import { ObjectID } from 'mongodb';
 
 const mockPostsRepository = () => ({
   getPosts: jest.fn(),
@@ -14,7 +15,7 @@ const mockUser = {
   id: 'random-id',
   email: 'TestingTest@mail.com',
   password: 'testingPassword123*',
-  posts: [],
+  posts: [new ObjectID('random')],
 };
 
 describe('PostsService', () => {

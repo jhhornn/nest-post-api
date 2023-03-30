@@ -15,14 +15,14 @@ import { AuthModule } from './auth/auth.module';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
-          type: 'postgres',
+          type: 'mongodb',
           autoLoadEntities: true,
           synchronize: true,
-          host: configService.get('DB_HOST'),
-          port: configService.get('DB_PORT'),
-          username: configService.get('DB_USERNAME'),
-          password: configService.get('DB_PASSWORD'),
-          database: configService.get('DB_DATABASE'),
+          ssl: true,
+          useUnifiedTopology: true,
+          useNewUrlParser: true,
+          url: configService.get('MONGODB_URI'),
+          database: configService.get('MONGODB_COLLECTION'),
         };
       },
     }),

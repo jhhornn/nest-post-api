@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { UnauthorizedException } from '@nestjs/common/exceptions';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common/exceptions';
+import { ConfigService } from '@nestjs/config/dist';
 import { JwtService } from '@nestjs/jwt/dist';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+// import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtPayload } from './jwt-payload.interface';
 import { UsersRepository } from './users.repository';
 
@@ -13,6 +20,7 @@ export class AuthService {
     @InjectRepository(UsersRepository)
     private usersRepository: UsersRepository,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
@@ -43,20 +51,34 @@ export class AuthService {
   //   return accessToken;
   // }
 
-  // async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-  //   const user = await this.usersRepository.findOne({
-  //     where: { email: forgotPasswordDto.email },
-  //   });
-  //   if (!user) {
-  //     throw new BadRequestException('User with this email was not found!');
-  //   }
-  //   const accessToken = await this.generateAccessToken(user.id, user.email);
-  //   const forgotPasswordLink = `${process.env.CLIENT_HOST}/api/auth/forgot-password/${accessToken}`;
-  //   await this.sendForgotPasswordLinkOnEmail(forgotPasswordLink, user.email);
-  //   return {
-  //     message:
-  //       'We sent forgot password link on your email address! Please, check your email!',
-  //   };
+  async forgotPassword(
+    forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ passwordResetToken: string }> {
+    const { email } = forgotPasswordDto;
+    const user = await this.usersRepository.findOne({
+      where: { email },
+    });
+    if (!user) {
+      throw new BadRequestException('User with this email was not found!');
+    }
+    const payload: JwtPayload = { email };
+    // Generate the reset password token which expires in 10 mins
+    const passwordResetToken = await this.jwtService.sign(payload, {
+      expiresIn: '10m',
+      secret: this.configService.get('RESET_PASSWORD_JWT_SECRET'),
+    });
+    if (passwordResetToken) {
+      // update the password resetToken in the database
+      user.resetToken = passwordResetToken;
+      await this.usersRepository.save(user);
+      return { passwordResetToken };
+    } else {
+      throw new InternalServerErrorException('reset password token error');
+    }
+  }
+
+  // async resetPassword (resetPasswordDto: ResetPasswordDto) {
+
   // }
 
   //   async sendForgotPasswordLinkOnEmail(forgotPasswordLink, email) {

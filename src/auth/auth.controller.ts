@@ -13,6 +13,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { User } from './user.entity';
 
 @ApiTags('Auth')
@@ -71,8 +72,8 @@ export class AuthController {
     return this.authService.signIn(authCredentialsDto);
   }
 
-  // @Post('/forgot-password')
-  // forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<any> {
-  //   return this.authService.forgotPassword(forgotPasswordDto);
-  // }
+  @Post('/forgot-password')
+  forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<any> {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
 }

@@ -68,8 +68,10 @@ export class AuthService {
       secret: this.configService.get('RESET_PASSWORD_JWT_SECRET'),
     });
     if (passwordResetToken) {
-      // update the password resetToken in the database
-      user.resetToken = passwordResetToken;
+      // hash the reset token and update the password resetToken in the database
+      const salt = await bcrypt.genSalt();
+      const hashedResetToken = await bcrypt.hash(passwordResetToken, salt);
+      user.resetToken = hashedResetToken;
       await this.usersRepository.save(user);
       return { passwordResetToken };
     } else {

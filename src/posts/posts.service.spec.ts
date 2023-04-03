@@ -14,6 +14,7 @@ const mockUser = {
   id: 'random-id',
   email: 'TestingTest@mail.com',
   password: 'testingPassword123*',
+  resetToken: '',
   posts: [],
 };
 

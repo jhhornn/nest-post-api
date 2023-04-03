@@ -62,6 +62,16 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException('User with this email was not found!');
     }
+
+    // checks if token present is verified
+    if (user.resetToken) {
+      const isValid = await this.jwtService.verify(user.resetToken, {
+        secret: this.configService.get('RESET_PASSWORD_JWT_SECRET'),
+      });
+      if (!isValid) {
+        throw new BadRequestException('Invalid or expired reset token');
+      }
+    }
     const payload: JwtPayload = { email };
     // Generate the reset password token which expires in 10 mins
     const passwordResetToken = await this.jwtService.sign(payload, {
@@ -84,13 +94,22 @@ export class AuthService {
     const { email, token, password } = resetPasswordDto;
     // Check if user exists
     const user = await this.usersRepository.findOne({ where: { email } });
-    // I fuser exists, is there a token value?
+    // If user exists, is there a token value?
     if (!user.resetToken) {
       throw new BadRequestException('Invalid or expired reset token');
     }
 
+    // Check if hashedtoken in DB is the same as token in passed
     const isValid = await bcrypt.compare(token, user.resetToken);
     if (!isValid) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Verify that token has not been tampered with
+    const isVerified = await this.jwtService.verify(token, {
+      secret: this.configService.get('RESET_PASSWORD_JWT_SECRET'),
+    });
+    if (!isVerified) {
       throw new BadRequestException('Invalid or expired reset token');
     }
 
@@ -101,6 +120,7 @@ export class AuthService {
     user.password = hashPassword;
     // Delete password reset token
     user.resetToken = '';
+    await this.usersRepository.save(user);
 
     return 'Password reset successful';
   }

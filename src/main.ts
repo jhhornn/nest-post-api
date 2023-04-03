@@ -11,10 +11,10 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const app = await NestFactory.create(AppModule);
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-doc', app, document);
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new TransformInterceptor());
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-doc', app, document);
   await app.listen(3000);
 }
 bootstrap();

@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 // import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtPayload } from './jwt-payload.interface';
 import { UsersRepository } from './users.repository';
@@ -79,24 +80,28 @@ export class AuthService {
     }
   }
 
-  // async resetPassword (resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<string> {
+    const { email, token, password } = resetPasswordDto;
+    // Check if user exists
+    const user = await this.usersRepository.findOne({ where: { email } });
+    // I fuser exists, is there a token value?
+    if (!user.resetToken) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
 
-  // }
+    const isValid = await bcrypt.compare(token, user.resetToken);
+    if (!isValid) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
 
-  //   async sendForgotPasswordLinkOnEmail(forgotPasswordLink, email) {
-  //     await this.mailService.sendMail({
-  //       to: email,
-  //       from: process.env.SMTP_USER,
-  //       subject: `Change your password on ${process.env.CLIENT_HOST}`,
-  //       text: '',
-  //       html:
-  //         `
-  //           <div>
-  //             <h1>Hello! Follow the link to change your password on ${process.env.CLIENT_HOST}!</h1>
-  //             <a href="${forgotPasswordLink}">${forgotPasswordLink}</a>
-  //           </div>
-  //         `
-  //     })
-  //   }
-  // }
+    const salt = await bcrypt.genSalt();
+    const hashPassword = await bcrypt.hash(password, salt);
+
+    // Set new password
+    user.password = hashPassword;
+    // Delete password reset token
+    user.resetToken = '';
+
+    return 'Password reset successful';
+  }
 }

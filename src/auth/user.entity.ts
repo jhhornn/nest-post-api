@@ -1,5 +1,5 @@
-import { PostEntity } from '../posts/post.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { PostEntity } from '../posts/post.entity';
 
 @Entity()
 export class User {
@@ -11,6 +11,9 @@ export class User {
 
   @Column()
   password: string;
+
+  @Column({ default: '' })
+  resetToken: string;
 
   // Eager true fetches the posts with the user (populate)
   @OneToMany((_type) => PostEntity, (post) => post.user, { eager: true })

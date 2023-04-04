@@ -51,6 +51,14 @@ $ npm run test
 
 ```
 
+## Seed
+
+```bash
+# seed
+$ npm run seed
+
+```
+
 ## Env
 
 change `.env.example.dev` to `.env.stage.dev` and update the values in it.

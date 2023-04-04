@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed-db": "ts-node ./src/seeder/dbseeder.ts --users 50 --posts 100"
+    "seed": "nest build && node dist/seeder",
+    "seed:refresh": "nest start && node dist/seeder --refresh"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^1.8.1",
@@ -47,6 +48,7 @@
     "typeorm": "^0.3.12"
   },
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
@@ -60,6 +62,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "29.3.1",
+    "nestjs-seeder": "^0.3.0",
     "prettier": "^2.3.2",
     "source-map-support": "^0.5.20",
     "supertest": "^6.1.3",

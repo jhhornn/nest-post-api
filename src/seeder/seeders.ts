@@ -24,12 +24,10 @@ export class Seeders implements Seeder {
     const users = DataFactory.createForClass(User).generate(numOfUsers, {
       password: hashedPassword,
     });
-    console.log(users);
 
     // Insert into the database.
     const userEnitities = this.user.create(users);
     await this.user.insert(userEnitities);
-    console.log(userEnitities);
 
     // Generate random index to be assigned to the posts user
     function getRandomIndex(array) {
@@ -44,9 +42,8 @@ export class Seeders implements Seeder {
         numOfPosts,
         { user: userEnitities[randomIndex].id },
       );
-      const postEnitities = this.post.create(posts);
+      const postEnitities = this.post.create(posts[i]);
       await this.post.insert(postEnitities);
-      return postEnitities;
     }
     return users;
   }

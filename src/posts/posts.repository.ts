@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { User } from '../auth/user.entity';
+import { Injectable, Logger } from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common/exceptions';
 import { DataSource, Repository } from 'typeorm';
+import { User } from '../auth/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsFilterDto } from './dto/get-posts-filter.dto';
 import { PostEntity } from './post.entity';
 
 @Injectable()
 export class PostsRepository extends Repository<PostEntity> {
+  private logger = new Logger('TasksRepository', { timestamp: true });
+
   constructor(private dataSource: DataSource) {
     super(PostEntity, dataSource.createEntityManager());
   }
@@ -44,7 +47,17 @@ export class PostsRepository extends Repository<PostEntity> {
         { search: `%${search}%` }, // % helps to check match in pieces
       );
     }
-    const posts = await query.getMany();
-    return posts;
+    try {
+      const posts = await query.getMany();
+      return posts;
+    } catch (err) {
+      this.logger.error(
+        `Failed to get tasks for user "${user.email}". Filter: ${JSON.stringify(
+          filterDto,
+        )}`,
+        err.stack,
+      );
+      throw new InternalServerErrorException();
+    }
   }
 }

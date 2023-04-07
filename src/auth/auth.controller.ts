@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Logger, Post } from '@nestjs/common';
 import {
   ConflictException,
   UnauthorizedException,
@@ -14,12 +14,14 @@ import {
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { LoginCredentialsDto } from './dto/login-credential.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { User } from './user.entity';
 
 @ApiTags('Auth')
 @Controller('api/v1/auth')
 export class AuthController {
+  private logger = new Logger('AuthController', { timestamp: true });
   constructor(private authService: AuthService) {}
 
   @ApiOperation({ description: 'User Signup' })
@@ -39,6 +41,9 @@ export class AuthController {
   // signup users
   @Post('/signup')
   signUp(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {
+    this.logger.verbose(
+      `User trying to signup with mail ${authCredentialsDto.email}`,
+    );
     return this.authService.signUp(authCredentialsDto);
   }
 
@@ -68,9 +73,10 @@ export class AuthController {
   // signin users
   @Post('/signin')
   signIn(
-    @Body() authCredentialsDto: AuthCredentialsDto,
+    @Body() loginCredentialsDto: LoginCredentialsDto,
   ): Promise<{ accessToken: string }> {
-    return this.authService.signIn(authCredentialsDto);
+    this.logger.verbose(`${loginCredentialsDto.email} trying to signin`);
+    return this.authService.signIn(loginCredentialsDto);
   }
 
   @Post('/forgot-password')

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Post,
   Put,
@@ -36,6 +37,7 @@ import { PostsService } from './posts.service';
 // protect all post routes
 @UseGuards(AuthGuard())
 export class PostsController {
+  private logger = new Logger('PostsController', { timestamp: true });
   // make postService available for use in controller class
   constructor(private postsService: PostsService) {}
 
@@ -63,6 +65,11 @@ export class PostsController {
     @Body() createPostDto: CreatePostDto,
     @GetUser() user: User,
   ): Promise<PostEntity> {
+    this.logger.verbose(
+      `User "${user.email}" creating a new post. Data: ${JSON.stringify(
+        createPostDto,
+      )}`,
+    );
     return this.postsService.createPost(createPostDto, user);
   }
 
@@ -80,6 +87,11 @@ export class PostsController {
     @Query() filterDto: GetPostsFilterDto,
     @GetUser() user: User,
   ): Promise<PostEntity[]> {
+    this.logger.verbose(
+      `User ${user.email} retrieving all posts. Filters: ${JSON.stringify(
+        filterDto,
+      )}`,
+    );
     return this.postsService.getPosts(filterDto, user);
   }
 
@@ -96,6 +108,7 @@ export class PostsController {
     @Param('id') id: string,
     @GetUser() user: User,
   ): Promise<PostEntity> {
+    this.logger.verbose(`User ${user.email} retrieving post with id ${id}`);
     return this.postsService.getPostById(id, user);
   }
 
@@ -115,6 +128,11 @@ export class PostsController {
     @Body() updatePostDto: UpdatePostDto,
     @GetUser() user: User,
   ): Promise<PostEntity> {
+    this.logger.verbose(
+      `User ${user.email} updating post with id ${id}. Data: ${JSON.stringify(
+        updatePostDto,
+      )}`,
+    );
     return this.postsService.updatePost(id, updatePostDto, user);
   }
 
@@ -130,6 +148,7 @@ export class PostsController {
   // Delete post
   @Delete('/:id')
   deletePost(@Param('id') id: string, @GetUser() user: User): Promise<void> {
+    this.logger.verbose(`User ${user.email} deleting post with id ${id}`);
     return this.postsService.deletePost(id, user);
   }
 }

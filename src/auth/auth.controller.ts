@@ -16,7 +16,6 @@ import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginCredentialsDto } from './dto/login-credential.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { User } from './user.entity';
 
 @ApiTags('Auth')
 @Controller('api/v1/auth')
@@ -24,22 +23,20 @@ export class AuthController {
   private logger = new Logger('AuthController', { timestamp: true });
   constructor(private authService: AuthService) {}
 
-  @ApiOperation({ description: 'User Signup' })
+  @ApiOperation({
+    description: 'User Signup',
+    summary: 'Users can signup using email and password',
+  })
   @ApiBody({
     required: true,
-    schema: {
-      example: {
-        email: 'test@gmail.com',
-        password: 'Qwerty123*',
-      },
-    },
+    type: AuthCredentialsDto,
   })
+  // signup users
+  @Post('/signup')
   @ApiConflictResponse({
     schema: { example: new ConflictException('email already exists!') },
   })
-  @ApiOkResponse({ description: '', type: User })
-  // signup users
-  @Post('/signup')
+  @ApiOkResponse({ description: 'User successfully created' })
   signUp(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {
     this.logger.verbose(
       `User trying to signup with mail ${authCredentialsDto.email}`,
@@ -47,15 +44,13 @@ export class AuthController {
     return this.authService.signUp(authCredentialsDto);
   }
 
-  @ApiOperation({ description: 'User Signin' })
+  @ApiOperation({
+    description: 'User Signin',
+    summary: 'Users can signin using their email and password',
+  })
   @ApiBody({
     required: true,
-    schema: {
-      example: {
-        email: 'test@gmail.com',
-        password: 'Qwerty123*',
-      },
-    },
+    type: LoginCredentialsDto,
   })
   @ApiUnauthorizedResponse({
     schema: {
@@ -63,7 +58,7 @@ export class AuthController {
     },
   })
   @ApiOkResponse({
-    description: 'token: Token',
+    description: 'JWT for authorization',
     schema: {
       example: {
         accessToken: `Access token string`,
@@ -79,11 +74,40 @@ export class AuthController {
     return this.authService.signIn(loginCredentialsDto);
   }
 
+  @ApiOperation({
+    description: 'User forgot password',
+    summary:
+      'Users can generate unique token which expires after 10mins to change their password',
+  })
+  @ApiBody({
+    required: true,
+    type: ForgotPasswordDto,
+  })
+  @ApiOkResponse({
+    description: 'JWT for changing password',
+    schema: {
+      example: {
+        resetToken: `token string`,
+      },
+    },
+  })
   @Post('/forgot-password')
   forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<any> {
     return this.authService.forgotPassword(forgotPasswordDto);
   }
 
+  @ApiOperation({
+    description: 'User reset password',
+    summary:
+      'Users can change their password using the token generated from /forgot-password route',
+  })
+  @ApiBody({
+    required: true,
+    type: ResetPasswordDto,
+  })
+  @ApiOkResponse({
+    description: 'Password reset!',
+  })
   @Post('/reset-password')
   resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<any> {
     return this.authService.resetPassword(resetPasswordDto);

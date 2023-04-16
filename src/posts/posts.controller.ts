@@ -11,22 +11,29 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  BadRequestException,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common/exceptions';
 import { AuthGuard } from '@nestjs/passport';
 import {
+  ApiBadRequestResponse,
   ApiBody,
+  ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
+  ApiQuery,
   ApiSecurity,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../auth/user.entity';
-import { CreatePostDto } from './dto/create-post.dto';
+import { CreatePostDto, SuccessCreatePost } from './dto/create-post.dto';
 import { GetPostsFilterDto } from './dto/get-posts-filter.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostEntity } from './post.entity';
@@ -41,26 +48,42 @@ export class PostsController {
   // make postService available for use in controller class
   constructor(private postsService: PostsService) {}
 
-  @ApiOperation({ description: 'Create comment' })
+  @ApiOperation({
+    description: 'Creates post',
+    summary:
+      'If you want to create a post, use this route. It takes no query params',
+  })
   @ApiBody({
     required: true,
+    type: CreatePostDto,
+    description: 'Create Post',
+  })
+  @ApiSecurity('bearer')
+
+  // Create Post
+  @Post()
+  @ApiCreatedResponse({
+    type: SuccessCreatePost,
+    description: 'Post created successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
     schema: {
-      example: {
-        title: 'Test title',
-        description: 'This is us just testing the thing',
-        body: 'Finally done testing',
-      },
+      example: new BadRequestException('Bad request'),
     },
   })
-  @ApiOkResponse({ type: PostEntity })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized Request',
+    schema: {
+      example: new UnauthorizedException('You are not authorized'),
+    },
+  })
   @ApiInternalServerErrorResponse({
+    description: 'Server error',
     schema: {
       example: new InternalServerErrorException('Something went wrong!'),
     },
   })
-  @ApiSecurity('bearer')
-  // Create Post
-  @Post()
   createPost(
     @Body() createPostDto: CreatePostDto,
     @GetUser() user: User,
@@ -73,8 +96,11 @@ export class PostsController {
     return this.postsService.createPost(createPostDto, user);
   }
 
-  @ApiOkResponse({ type: [PostEntity] })
-  @ApiOperation({ description: 'Get all comments' })
+  @ApiOperation({
+    description: 'Get all posts',
+    summary:
+      'If you want to get all posts, use this route. It takes an optional title query params',
+  })
   @ApiInternalServerErrorResponse({
     schema: {
       example: new InternalServerErrorException('Something went wrong!'),
@@ -83,6 +109,14 @@ export class PostsController {
   @ApiSecurity('bearer')
   // Get posts
   @Get()
+  @ApiQuery({ name: 'title', required: false })
+  @ApiOkResponse({ type: SuccessCreatePost, isArray: true })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized Request',
+    schema: {
+      example: new UnauthorizedException('You are not authorized'),
+    },
+  })
   getPosts(
     @Query() filterDto: GetPostsFilterDto,
     @GetUser() user: User,
@@ -95,15 +129,20 @@ export class PostsController {
     return this.postsService.getPosts(filterDto, user);
   }
 
-  @ApiOkResponse({ type: PostEntity })
-  @ApiNotFoundResponse({
-    schema: {
-      example: new NotFoundException(`Comment with id was not found!`),
-    },
+  @ApiOperation({
+    description: 'Get post by id',
+    summary: 'If you want to get a post by id, use this route. It takes param',
   })
   @ApiSecurity('bearer')
   // Get posts by id
   @Get('/:id')
+  @ApiParam({ name: 'id' })
+  @ApiOkResponse({ type: SuccessCreatePost })
+  @ApiNotFoundResponse({
+    schema: {
+      example: new NotFoundException(`post with id was not found!`),
+    },
+  })
   getPostById(
     @Param('id') id: string,
     @GetUser() user: User,
@@ -112,17 +151,21 @@ export class PostsController {
     return this.postsService.getPostById(id, user);
   }
 
-  @ApiOkResponse({ type: PostEntity })
-  @ApiNotFoundResponse({
-    schema: {
-      example: new NotFoundException(
-        `Comment with id was not updated! Access Denied!`,
-      ),
-    },
+  @ApiOperation({
+    description: 'Update post by id',
+    summary:
+      'If you want to update a post by id, use this route. It takes param',
   })
   @ApiSecurity('bearer')
   // Update post
   @Put('/:id')
+  @ApiParam({ name: 'id' })
+  @ApiOkResponse({ type: SuccessCreatePost })
+  @ApiNotFoundResponse({
+    schema: {
+      example: new NotFoundException(`post with id was not found!`),
+    },
+  })
   updatePost(
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
@@ -136,17 +179,21 @@ export class PostsController {
     return this.postsService.updatePost(id, updatePostDto, user);
   }
 
-  @ApiOkResponse({})
-  @ApiNotFoundResponse({
-    schema: {
-      example: new NotFoundException(
-        `Comment with id was not deleted! Access Denied!`,
-      ),
-    },
+  @ApiOperation({
+    description: 'Delete post by id',
+    summary:
+      'If you want to delete a post by id, use this route. It takes param',
   })
   @ApiSecurity('bearer')
   // Delete post
   @Delete('/:id')
+  @ApiParam({ name: 'id' })
+  @ApiOkResponse({})
+  @ApiNotFoundResponse({
+    schema: {
+      example: new NotFoundException(`post with id was not found!`),
+    },
+  })
   deletePost(@Param('id') id: string, @GetUser() user: User): Promise<void> {
     this.logger.verbose(`User ${user.email} deleting post with id ${id}`);
     return this.postsService.deletePost(id, user);
